@@ -1,0 +1,145 @@
+---
+title: "Salary Veri Seti ANOVA Analizi"
+author: "Duygu Eryılmaz"
+date: "2026-05-26"
+output: html_document
+---
+
+# 1. Veri Setini İçe Aktarma
+
+```{r}
+salary_veri <- read.csv("Salary.csv")
+
+head(salary_veri)
+str(salary_veri)
+```
+
+Veri seti başarıyla sisteme aktarılmıştır.
+Veri setinde Salary, Gender, Age ve PhD değişkenleri bulunmaktadır.
+Gender ve PhD değişkenleri kategorik yapıdadır.
+
+# 2. Faktör Dönüşümleri
+
+```{r}
+salary_veri$Gender <- factor(
+  salary_veri$Gender,
+  levels = c(0,1),
+  labels = c("Kadin", "Erkek")
+)
+
+salary_veri$PhD <- factor(
+  salary_veri$PhD,
+  levels = c(0,1),
+  labels = c("PhD_Yok", "PhD_Var")
+)
+
+str(salary_veri)
+```
+
+Gender ve PhD değişkenleri factor tipine dönüştürülmüştür.
+Böylece ANOVA analizinin doğru şekilde çalışması sağlanmıştır.
+
+# 3. Boxplot
+
+```{r}
+boxplot(
+  Salary ~ PhD,
+  data = salary_veri,
+  main = "PhD Durumuna Göre Maaş Dağılımı",
+  xlab = "PhD Durumu",
+  ylab = "Salary",
+  col = c("lightblue", "orange")
+)
+```
+
+Boxplot grafiği grupların maaş dağılımlarını göstermektedir.
+Medyan değerler ve dağılımlar incelenerek gruplar arasındaki fark gözlemlenebilir.
+Aykırı değerler grafik üzerinden görülebilmektedir.
+
+# 4. Normallik Testi
+
+```{r}
+by(
+  salary_veri$Salary,
+  salary_veri$PhD,
+  shapiro.test
+)
+```
+
+H0: Veriler normal dağılım göstermektedir.
+p-value > 0.05 ise normallik varsayımı sağlanır.
+p-value < 0.05 ise normallik varsayımı sağlanmaz.
+
+# 5. Levene Testi
+
+```{r}
+library(car)
+
+leveneTest(
+  Salary ~ PhD,
+  data = salary_veri
+)
+```
+
+H0: Grup varyansları homojendir.
+p-value > 0.05 ise varyans homojenliği sağlanmaktadır.
+Bu durumda ANOVA testi uygulanabilir.
+
+
+
+# 6. İki Faktörlü ANOVA
+
+```{r}
+iki_yonlu <- aov(
+  Salary ~ Gender + PhD,
+  data = salary_veri
+)
+
+summary(iki_yonlu)
+```
+
+Bu analiz iki bağımsız değişkenin maaş üzerindeki etkisini birlikte incelemektedir.
+Her değişkenin ayrı ayrı anlamlılığı değerlendirilmektedir.
+
+# 7. Etkileşimli ANOVA
+
+```{r}
+etkilesim_modeli <- aov(
+  Salary ~ Gender * PhD,
+  data = salary_veri
+)
+
+summary(etkilesim_modeli)
+```
+
+Gender:PhD satırı etkileşim etkisini göstermektedir.
+p-value < 0.05 ise ortak etkileşim anlamlıdır.
+p-value > 0.05 ise ortak etkileşim anlamlı değildir.
+
+# 8. Kruskal-Wallis Testi
+
+```{r}
+kruskal.test(
+  Salary ~ PhD,
+  data = salary_veri
+)
+```
+
+Normallik varsayımı sağlanmazsa bu test tercih edilmektedir.
+p-value < 0.05 ise gruplar arasında anlamlı fark vardır.
+p-value > 0.05 ise anlamlı fark bulunmamaktadır.
+
+
+Genel Bakış ve Sonuç
+
+Salary veri seti sisteme başarıyla aktarılmıştır.
+Gender ve PhD değişkenleri kategorik yapıya dönüştürülmüştür.
+Boxplot grafikleri ile maaş dağılımları görselleştirilmiştir.
+Shapiro-Wilk testi ile normallik varsayımı incelenmiştir.
+Levene testi ile varyans homojenliği kontrol edilmiştir.
+Tek yönlü ANOVA ile PhD değişkeninin maaş üzerindeki etkisi analiz edilmiştir.
+Gender değişkeninin maaş üzerindeki etkisi ayrıca değerlendirilmiştir.
+İki yönlü ANOVA ile Gender ve PhD değişkenleri birlikte incelenmiştir.
+Etkileşimli ANOVA modeli ile ortak etkiler analiz edilmiştir.
+Varsayımlar sağlanmadığında Kruskal-Wallis testi uygulanmıştır.
+p-value değerlerine göre değişkenlerin anlamlılık durumları yorumlanmıştır.
